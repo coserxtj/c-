@@ -1,35 +1,31 @@
 <!doctype html>
-<html lang="zh-CN">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#091318">
-<title>地铁·夜行 | METRO AFTER HOURS</title>
-<style>html,body{margin:0;min-height:100%;background:#091318;color:#e4edef;font-family:system-ui,-apple-system,"Microsoft YaHei",sans-serif}main{max-width:520px;margin:16vh auto;padding:28px}h1{font-size:32px;letter-spacing:3px}p{line-height:1.8;color:#abc1c5}progress{width:100%;height:6px;accent-color:#80e4c3}button{background:#80e4c3;border:0;border-radius:10px;padding:14px 24px;font:inherit;color:#102925}small{color:#748d94}</style>
-</head>
-<body>
-<main><small>METRO AFTER HOURS · 浏览器驾驶模拟器</small><h1>地铁·夜行</h1><p id="status">正在载入驾驶室、列车和五座车站…</p><progress id="progress" max="5" value="0"></progress><p>无需安装。手机横屏、电脑键盘均可驾驶。</p><button id="retry" hidden onclick="location.reload()">重新载入</button></main>
+<html lang="zh-CN"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#091318">
+<title>地铁·夜行 2.0 | 驾驶重制</title>
+<style>html,body{margin:0;min-height:100%;background:#091318;color:#e4edef;font-family:system-ui,-apple-system,"Microsoft YaHei",sans-serif}main{max-width:520px;margin:16vh auto;padding:28px}h1{font-size:32px;letter-spacing:3px}p{line-height:1.8;color:#abc1c5}progress{width:100%;height:6px;accent-color:#80e4c3}button{background:#80e4c3;border:0;border-radius:10px;padding:14px 24px;font:inherit;color:#102925}small{color:#80e4c3}</style>
+</head><body>
+<main><small>DRIVE 2.0 · 驾驶系统重制</small><h1>地铁·夜行</h1><p id="status">正在载入列车动力、驾驶室和五座车站…</p><progress id="progress" max="5" value="0"></progress><p>牵引建立 · 电空混合制动 · 真实位置停车<br>无需安装。手机横屏、电脑键盘均可驾驶。</p><button id="retry" hidden onclick="location.reload()">重新载入</button></main>
+<script src="driving-2.0.js"></script>
 <script>
 (async()=>{
-try{
-if(!('DecompressionStream' in window))throw new Error('请使用支持此游戏的新版 Chrome、Edge 或 Safari 浏览器。');
-let completed=0;
-const parts=await Promise.all([0,1,2,3,4].map(async i=>{
-const response=await fetch(new URL('data'+i+'.txt',location.href));
-if(!response.ok)throw new Error('游戏资源暂时无法读取（'+response.status+'），请刷新重试。');
-const text=(await response.text()).trim();
-document.getElementById('progress').value=++completed;
-return text;
-}));
-const bytes=Uint8Array.from(atob(parts.join('')),c=>c.charCodeAt(0));
-const html=await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
-if(!html.startsWith('<!doctype html>'))throw new Error('游戏数据不完整，请刷新重试。');
-document.open();document.write(html);document.close();
-}catch(error){
-document.getElementById('status').textContent=error.message;
-document.getElementById('retry').hidden=false;
+try {
+ if(typeof upgradeMetro!=='function')throw new Error('驾驶升级组件未能载入，请刷新重试。');
+ if(!('DecompressionStream' in window))throw new Error('浏览器不支持游戏解压，请使用新版 Chrome、Edge 或 Safari。');
+ let completed=0;
+ const root=new URL('./',document.baseURI);
+ const parts=await Promise.all([0,1,2,3,4].map(async i=>{
+  const response=await fetch(new URL('data'+i+'.txt',root));
+  if(!response.ok)throw new Error('游戏资源暂时无法读取（'+response.status+'），请刷新重试。');
+  const text=(await response.text()).trim();document.getElementById('progress').value=++completed;return text;
+ }));
+ const bytes=Uint8Array.from(atob(parts.join('')),c=>c.charCodeAt(0));
+ const original=await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
+ if(!original.startsWith('<!doctype html>'))throw new Error('游戏数据不完整，请刷新重试。');
+ const upgraded=upgradeMetro(original);
+ document.open();document.write(upgraded);document.close();
+} catch(error) {
+ document.getElementById('status').textContent=error.message;
+ document.getElementById('retry').hidden=false;
 }
 })();
-</script>
-</body>
-</html>
+</script></body></html>
